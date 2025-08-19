@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poetry Device Challenge</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the game */
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f9ff; /* Light blue background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .game-container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .btn {
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* Blue */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb; /* Darker blue */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        .btn-secondary {
+            background-color: #60a5fa; /* Lighter blue */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #3b82f6; /* Blue */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+        .btn-option {
+            background-color: #e0f2fe; /* Very light blue */
+            color: #1e40af; /* Dark blue text */
+            border: 2px solid #93c5fd; /* Light blue border */
+        }
+        .btn-option:hover {
+            background-color: #bfdbfe; /* Slightly darker light blue */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-option.correct {
+            background-color: #d1fae5; /* Green for correct */
+            border-color: #34d399;
+            color: #065f46;
+        }
+        .btn-option.incorrect {
+            background-color: #fee2e2; /* Red for incorrect */
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+        .feedback-box {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: left;
+        }
+        .feedback-correct {
+            background-color: #d1fae5; /* Green */
+            color: #065f46;
+            border: 2px solid #34d399;
+        }
+        .feedback-incorrect {
+            background-color: #fee2e2; /* Red */
+            color: #991b1b;
+            border: 2px solid #ef4444;
+        }
+        .loader {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #3b82f6; /* Blue */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="game-container">
+        <!-- Loading Indicator -->
+        <div id="loader" class="loader"></div>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="p-5">
+            <h1 class="text-4xl font-extrabold text-blue-700 mb-4">Poetry Device Challenge!</h1>
+            <p class="text-lg text-gray-700 mb-6">Welcome, Grade 6 poets! Get ready to test your knowledge of amazing poetry devices.</p>
+            <p class="text-md text-gray-600 mb-8">
+                In this game, you'll learn about different ways poets use words to create special effects. Then, you'll answer questions to show what you've learned!
+            </p>
+            <button id="startButton" class="btn btn-primary text-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                    <path fill-rule="evenodd" d="M4.5 5.653c0-1.427 1.529-2.33 2.779-1.643l11.54 6.347c1.295.712 1.295 2.561 0 3.273L7.28 19.99c-1.25.687-2.779-.236-2.779-1.643V5.653Z" clip-rule="evenodd" />
+                </svg>
+                Start Learning!
+            </button>
+        </div>
+
+        <!-- Learning Screen -->
+        <div id="learningScreen" class="hidden p-5">
+            <h2 class="text-3xl font-bold text-blue-600 mb-6">Learn About Poetry Devices</h2>
+            <div id="deviceDefinition" class="bg-blue-50 p-6 rounded-lg mb-6 shadow-inner text-left">
+                <h3 id="deviceTitle" class="text-2xl font-semibold text-blue-800 mb-2"></h3>
+                <p id="deviceDescription" class="text-gray-800 text-lg mb-3"></p>
+                <p id="deviceExample" class="text-gray-600 italic text-md"></p>
+            </div>
+            <div class="flex justify-between gap-4">
+                <button id="prevDeviceButton" class="btn btn-secondary flex-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path fill-rule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 0 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clip-rule="evenodd" />
+                    </svg>
+                    Previous
+                </button>
+                <button id="nextDeviceButton" class="btn btn-secondary flex-1">
+                    Next
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path fill-rule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clip-rule="evenodd" />
+                </svg>
+                </button>
+            </div>
+            <button id="startQuizButton" class="btn btn-primary mt-6 w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                    <path d="M10.5 18.75a.75.75 0 0 0 0 1.5h3a.75.75 0 0 0 0-1.5h-3ZM12 4.5a.75.75 0 0 0-.75.75V7.5a.75.75 0 0 0 1.5 0V5.25A.75.75 0 0 0 12 4.5ZM12 10.5a.75.75 0 0 0-.75.75v3a.75.75 0 0 0 1.5 0v-3a.75.75 0 0 0-.75-.75Z" />
+                    <path fill-rule="evenodd" d="M8.625 2.25A.75.75 0 0 0 7.875 3v1.5H4.5a.75.75 0 0 0-.75.75v9a.75.75 0 0 0 .75.75h15a.75.75 0 0 0 .75-.75v-9a.75.75 0 0 0-.75-.75h-3.375V3A.75.75 0 0 0 15.375 2.25h-6.75ZM12 12.75a.75.75 0 0 0-.75.75v3a.75.75 0 0 0 1.5 0v-3a.75.75 0 0 0-.75-.75Z" clip-rule="evenodd" />
+                </svg>
+                Start Quiz!
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="hidden p-5">
+            <h2 class="text-3xl font-bold text-blue-600 mb-6" id="quizLevelTitle">Quiz Time!</h2>
+            <div class="flex justify-between items-center mb-4">
+                <p class="text-xl text-gray-700">Question <span id="currentQuestionNumber">1</span> of <span id="totalQuestions"></span></p>
+                <p class="text-xl text-gray-700">Score: <span id="score">0</span></p>
+            </div>
+            <p id="questionText" class="text-2xl font-medium text-gray-800 mb-8 bg-blue-50 p-6 rounded-lg shadow-inner"></p>
+            <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Options will be loaded here by JavaScript -->
+            </div>
+            <div id="feedback" class="feedback-box hidden"></div>
+            <button id="nextQuestionButton" class="btn btn-primary mt-6 w-full hidden">
+                Next Question
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                    <path fill-rule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clip-rule="evenodd" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- End Screen -->
+        <div id="endScreen" class="hidden p-5">
+            <h2 class="text-4xl font-extrabold text-blue-700 mb-4" id="endScreenTitle">Quiz Complete!</h2>
+            <p class="text-2xl text-gray-800 mb-6">You scored <span id="finalScore" class="font-bold"></span> out of <span id="finalTotalQuestions" class="font-bold"></span>!</p>
+            <p id="encouragementMessage" class="text-lg text-gray-700 mb-8"></p>
+            <div class="flex flex-col gap-4">
+                <button id="proceedToLevel2Button" class="btn btn-primary w-full text-xl hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                        <path fill-rule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clip-rule="evenodd" />
+                    </svg>
+                    Proceed to Level 2 Quiz!
+                </button>
+                <button id="restartButton" class="btn btn-secondary w-full text-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                        <path fill-rule="evenodd" d="M4.755 10.059a7.5 7.5 0 0 1 12.548-3.364l1.903 1.903h-3.183a.75.75 0 1 0 0 1.5h4.875a.75.75 0 0 0 .75-.75V6.108a.75.75 0 0 0-1.5 0v3.183l-1.903-1.903a9 9 0 0 0-15.002 4.366.75.75 0 0 0 1.48.22Z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M18.245 13.941a7.5 7.5 0 0 1-12.548 3.364l-1.903-1.903h3.183a.75.75 0 0 0 0-1.5H2.25a.75.75 0 0 0-.75.75v4.875a.75.75 0 0 0 1.5 0v-3.183l1.903 1.903a9 9 0 0 0 15.002-4.366.75.75 0 0 0-1.48-.22Z" clip-rule="evenodd" />
+                    </svg>
+                    Play Again (Start from Level 1)!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Define the poetry devices with their descriptions and examples
+        const poetryDevices = [
+            {
+                name: "Simile",
+                description: "A comparison between two unlike things using 'like' or 'as'.",
+                example: "Her smile was as bright as the sun."
+            },
+            {
+                name: "Metaphor",
+                description: "A direct comparison between two unlike things without using 'like' or 'as'. It says one thing IS another.",
+                example: "The classroom was a zoo."
+            },
+            {
+                name: "Personification",
+                description: "Giving human qualities or actions to inanimate objects, animals, or ideas.",
+                example: "The wind whispered secrets through the trees."
+            },
+            {
+                name: "Onomatopoeia",
+                description: "Words that imitate the sound they represent.",
+                example: "The clock went tick-tock."
+            },
+            {
+                name: "Oxymoron",
+                description: "A figure of speech in which apparently contradictory terms appear in conjunction.",
+                example: "Jumbo shrimp."
+            },
+            {
+                name: "Idiom",
+                description: "A phrase or expression whose meaning cannot be inferred from the meanings of its individual words. It's a common saying.",
+                example: "It's raining cats and dogs."
+            },
+            {
+                name: "Hyperbole",
+                description: "Exaggerated statements or claims not meant to be taken literally, used for emphasis or effect.",
+                example: "I'm so hungry I could eat a horse."
+            },
+            {
+                name: "Allusion",
+                description: "An indirect or passing reference to a person, event, or literary work, often from history or mythology.",
+                example: "He was a real Romeo with the ladies. (Reference to Shakespeare's Romeo)"
+            },
+            {
+                name: "Alliteration",
+                description: "The occurrence of the same letter or sound at the beginning of adjacent or closely connected words.",
+                example: "Peter Piper picked a peck of pickled peppers."
+            },
+            {
+                name: "Pun",
+                description: "A joke exploiting the different possible meanings of a word or the fact that there are words which sound alike but have different meanings.",
+                example: "I've been to the dentist many times, so I know the drill."
+            },
+            {
+                name: "Assonance",
+                description: "The repetition of vowel sounds in non-rhyming words near each other.",
+                example: "Hear the mellow wedding bells."
+            },
+            {
+                name: "Synecdoche",
+                description: "A figure of speech in which a part is made to represent the whole or vice versa.",
+                example: "All hands on deck. (Hands represent sailors)"
+            },
+            {
+                name: "Irony",
+                description: "The expression of one's meaning by using language that normally signifies the opposite, typically for humorous or emphatic effect.",
+                example: "A fire station burns down."
+            }
+        ];
+
+        // Define quiz questions for Level 1
+        const quizQuestionsLevel1 = [
+            {
+                question: "The car zoomed past, *whoosh*!",
+                answer: "Onomatopoeia",
+                options: ["Simile", "Metaphor", "Onomatopoeia", "Hyperbole"]
+            },
+            {
+                question: "The snow was a white blanket covering the ground.",
+                answer: "Metaphor",
+                options: ["Simile", "Metaphor", "Personification", "Alliteration"]
+            },
+            {
+                question: "She sings like an angel.",
+                answer: "Simile",
+                options: ["Metaphor", "Simile", "Idiom", "Oxymoron"]
+            },
+            {
+                question: "The old house groaned in the wind.",
+                answer: "Personification",
+                options: ["Hyperbole", "Allusion", "Personification", "Pun"]
+            },
+            {
+                question: "It was a *deafening silence* in the room.",
+                answer: "Oxymoron",
+                options: ["Irony", "Oxymoron", "Assonance", "Synecdoche"]
+            },
+            {
+                question: "Don't spill the beans!",
+                answer: "Idiom",
+                options: ["Alliteration", "Idiom", "Simile", "Metaphor"]
+            },
+            {
+                question: "I've told you a million times!",
+                answer: "Hyperbole",
+                options: ["Personification", "Hyperbole", "Allusion", "Onomatopoeia"]
+            },
+            {
+                question: "He's a real Scrooge when it comes to spending money.",
+                answer: "Allusion",
+                options: ["Idiom", "Allusion", "Irony", "Synecdoche"]
+            },
+            {
+                question: "Sally sells seashells by the seashore.",
+                answer: "Alliteration",
+                options: ["Assonance", "Alliteration", "Pun", "Onomatopoeia"]
+            },
+            {
+                question: "Why did the bicycle fall over? Because it was two tired!",
+                answer: "Pun",
+                options: ["Hyperbole", "Pun", "Irony", "Idiom"]
+            },
+            {
+                question: "The light of the fire is a sight.",
+                answer: "Assonance",
+                options: ["Alliteration", "Assonance", "Onomatopoeia", "Simile"]
+            },
+            {
+                question: "The company hired new *brains* for the research department.",
+                answer: "Synecdoche",
+                options: ["Metaphor", "Synecdoche", "Allusion", "Personification"]
+            },
+            {
+                question: "The police station was robbed.",
+                answer: "Irony",
+                options: ["Hyperbole", "Irony", "Oxymoron", "Pun"]
+            },
+            {
+                question: "The sun smiled down on us.",
+                answer: "Personification",
+                options: ["Simile", "Metaphor", "Personification", "Hyperbole"]
+            },
+            {
+                question: "The thunder *boomed* loudly.",
+                answer: "Onomatopoeia",
+                options: ["Onomatopoeia", "Alliteration", "Assonance", "Idiom"]
+            }
+        ];
+
+        // Define quiz questions for Level 2
+        const quizQuestionsLevel2 = [
+            {
+                question: "The silence was *piercing*.",
+                answer: "Oxymoron",
+                options: ["Simile", "Metaphor", "Oxymoron", "Hyperbole"]
+            },
+            {
+                question: "He ran like a cheetah.",
+                answer: "Simile",
+                options: ["Metaphor", "Simile", "Personification", "Idiom"]
+            },
+            {
+                question: "The alarm *screamed* at us.",
+                answer: "Personification",
+                options: ["Onomatopoeia", "Hyperbole", "Personification", "Alliteration"]
+            },
+            {
+                question: "My backpack weighs a ton!",
+                answer: "Hyperbole",
+                options: ["Idiom", "Allusion", "Hyperbole", "Pun"]
+            },
+            {
+                question: "She's got a chip on her shoulder.",
+                answer: "Idiom",
+                options: ["Irony", "Oxymoron", "Idiom", "Assonance"]
+            },
+            {
+                question: "The *buzz* of the bees filled the air.",
+                answer: "Onomatopoeia",
+                options: ["Alliteration", "Onomatopoeia", "Simile", "Metaphor"]
+            },
+            {
+                question: "The world is a stage.",
+                answer: "Metaphor",
+                options: ["Personification", "Hyperbole", "Allusion", "Metaphor"]
+            },
+            {
+                question: "He's no Einstein, but he tries.",
+                answer: "Allusion",
+                options: ["Idiom", "Allusion", "Irony", "Synecdoche"]
+            },
+            {
+                question: "Tiny Timmy told tall tales.",
+                answer: "Alliteration",
+                options: ["Assonance", "Alliteration", "Pun", "Onomatopoeia"]
+            },
+            {
+                question: "What do you call a fake noodle? An impasta!",
+                answer: "Pun",
+                options: ["Hyperbole", "Pun", "Irony", "Idiom"]
+            },
+            {
+                question: "The cat sat on the mat.",
+                answer: "Assonance", // Example of short 'a' sound repetition
+                options: ["Alliteration", "Assonance", "Onomatopoeia", "Simile"]
+            },
+            {
+                question: "We need more *hands* on this project.",
+                answer: "Synecdoche",
+                options: ["Metaphor", "Synecdoche", "Allusion", "Personification"]
+            },
+            {
+                question: "The marriage counselor filed for divorce.",
+                answer: "Irony",
+                options: ["Hyperbole", "Irony", "Oxymoron", "Pun"]
+            }
+        ];
+
+        // Game state variables
+        let currentLearningIndex = 0;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizActive = false;
+        let questionAnswered = false; // To prevent multiple clicks on options
+        let currentQuizQuestions = []; // Holds the questions for the active quiz level
+        let quizLevel = 1; // Tracks the current quiz level
+
+        // DOM elements
+        const startScreen = document.getElementById('startScreen');
+        const learningScreen = document.getElementById('learningScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const endScreen = document.getElementById('endScreen');
+        const loader = document.getElementById('loader');
+
+        const startButton = document.getElementById('startButton');
+        const deviceTitle = document.getElementById('deviceTitle');
+        const deviceDescription = document.getElementById('deviceDescription');
+        const deviceExample = document.getElementById('deviceExample');
+        const prevDeviceButton = document.getElementById('prevDeviceButton');
+        const nextDeviceButton = document.getElementById('nextDeviceButton');
+        const startQuizButton = document.getElementById('startQuizButton');
+
+        const quizLevelTitle = document.getElementById('quizLevelTitle');
+        const currentQuestionNumber = document.getElementById('currentQuestionNumber');
+        const totalQuestions = document.getElementById('totalQuestions');
+        const scoreDisplay = document.getElementById('score');
+        const questionText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const feedbackDiv = document.getElementById('feedback');
+        const nextQuestionButton = document.getElementById('nextQuestionButton');
+
+        const endScreenTitle = document.getElementById('endScreenTitle');
+        const finalScore = document.getElementById('finalScore');
+        const finalTotalQuestions = document.getElementById('finalTotalQuestions');
+        const encouragementMessage = document.getElementById('encouragementMessage');
+        const proceedToLevel2Button = document.getElementById('proceedToLevel2Button');
+        const restartButton = document.getElementById('restartButton');
+
+        // --- Utility Functions ---
+        function showScreen(screenId) {
+            startScreen.classList.add('hidden');
+            learningScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            loader.style.display = 'none';
+
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function showLoader() {
+            startScreen.classList.add('hidden');
+            learningScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            loader.style.display = 'block';
+        }
+
+        // Function to shuffle an array (Fisher-Yates algorithm)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+            return array; // Ensure the shuffled array is returned
+        }
+
+        // --- Learning Section Functions ---
+        function displayCurrentDevice() {
+            const device = poetryDevices[currentLearningIndex];
+            deviceTitle.textContent = device.name;
+            deviceDescription.textContent = device.description;
+            deviceExample.textContent = `Example: "${device.example}"`;
+
+            prevDeviceButton.disabled = (currentLearningIndex === 0);
+            nextDeviceButton.disabled = (currentLearningIndex === poetryDevices.length - 1);
+        }
+
+        function handleNextDevice() {
+            if (currentLearningIndex < poetryDevices.length - 1) {
+                currentLearningIndex++;
+                displayCurrentDevice();
+            }
+        }
+
+        function handlePrevDevice() {
+            if (currentLearningIndex > 0) {
+                currentLearningIndex--;
+                displayCurrentDevice();
+            }
+        }
+
+        // --- Quiz Section Functions ---
+        function startQuiz(level) {
+            quizLevel = level;
+            currentQuizQuestions = (level === 1) ? [...quizQuestionsLevel1] : [...quizQuestionsLevel2];
+            shuffleArray(currentQuizQuestions); // Shuffle questions at the start of the quiz
+            currentQuestionIndex = 0;
+            score = 0;
+            quizActive = true;
+            totalQuestions.textContent = currentQuizQuestions.length;
+            scoreDisplay.textContent = score;
+            quizLevelTitle.textContent = `Quiz Time! (Level ${quizLevel})`;
+            showScreen('quizScreen');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            questionAnswered = false; // Reset for new question
+            feedbackDiv.classList.add('hidden');
+            nextQuestionButton.classList.add('hidden');
+            optionsContainer.innerHTML = ''; // Clear previous options
+
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                const q = currentQuizQuestions[currentQuestionIndex];
+                currentQuestionNumber.textContent = currentQuestionIndex + 1;
+                questionText.textContent = q.question;
+
+                // Shuffle options for each question. Ensure shuffleArray returns the array.
+                const shuffledOptions = shuffleArray([...q.options]);
+
+                shuffledOptions.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.classList.add('btn', 'btn-option', 'w-full', 'py-3', 'text-lg');
+                    button.dataset.answer = option; // Store the option text
+                    button.addEventListener('click', checkAnswer);
+                    optionsContainer.appendChild(button);
+                });
+            } else {
+                endQuiz();
+            }
+        }
+
+        function checkAnswer(event) {
+            if (questionAnswered) return; // Prevent multiple clicks
+
+            questionAnswered = true;
+            const selectedOption = event.target;
+            const userAnswer = selectedOption.dataset.answer;
+            const correctAnswer = currentQuizQuestions[currentQuestionIndex].answer;
+            const explanation = poetryDevices.find(d => d.name === correctAnswer).description;
+
+            // Disable all options after selection
+            Array.from(optionsContainer.children).forEach(button => {
+                button.removeEventListener('click', checkAnswer);
+                button.disabled = true; // Disable the button
+                if (button.dataset.answer === correctAnswer) {
+                    button.classList.add('correct');
+                } else if (button.dataset.answer === userAnswer) {
+                    button.classList.add('incorrect');
+                }
+            });
+
+            if (userAnswer === correctAnswer) {
+                score++;
+                scoreDisplay.textContent = score;
+                feedbackDiv.classList.remove('hidden', 'feedback-incorrect');
+                feedbackDiv.classList.add('feedback-correct');
+                feedbackDiv.innerHTML = `<p><strong>Correct!</strong> That's a ${correctAnswer}.</p>`;
+            } else {
+                feedbackDiv.classList.remove('hidden', 'feedback-correct');
+                feedbackDiv.classList.add('feedback-incorrect');
+                feedbackDiv.innerHTML = `<p><strong>Incorrect.</strong> The correct answer was ${correctAnswer}.</p><p>Remember: ${explanation}</p>`;
+            }
+            nextQuestionButton.classList.remove('hidden');
+        }
+
+        function handleNextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function endQuiz() {
+            quizActive = false;
+            finalScore.textContent = score;
+            finalTotalQuestions.textContent = currentQuizQuestions.length;
+
+            let message = "";
+            const percentage = (score / currentQuizQuestions.length) * 100;
+
+            if (percentage === 100) {
+                message = "Amazing job! You're a poetry expert!";
+            } else if (percentage >= 70) {
+                message = "Great effort! You're doing really well. Keep practicing!";
+            } else {
+                message = "Good try! Keep learning and you'll master these devices!";
+            }
+            encouragementMessage.textContent = message;
+
+            // Show/hide level 2 button based on current level
+            if (quizLevel === 1) {
+                proceedToLevel2Button.classList.remove('hidden');
+                endScreenTitle.textContent = "Quiz Level 1 Complete!";
+            } else {
+                proceedToLevel2Button.classList.add('hidden');
+                endScreenTitle.textContent = "Quiz Level 2 Complete!";
+            }
+
+            showScreen('endScreen');
+        }
+
+        function restartGame() {
+            currentLearningIndex = 0;
+            currentQuestionIndex = 0;
+            score = 0;
+            quizActive = false;
+            quizLevel = 1; // Reset to level 1
+            proceedToLevel2Button.classList.add('hidden'); // Hide button on restart
+            showScreen('startScreen');
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', () => {
+            showLoader();
+            setTimeout(() => { // Simulate loading time
+                showScreen('learningScreen');
+                displayCurrentDevice();
+            }, 500);
+        });
+
+        nextDeviceButton.addEventListener('click', handleNextDevice);
+        prevDeviceButton.addEventListener('click', handlePrevDevice);
+        startQuizButton.addEventListener('click', () => startQuiz(1)); // Start Level 1 Quiz
+        nextQuestionButton.addEventListener('click', handleNextQuestion);
+        restartButton.addEventListener('click', restartGame);
+        proceedToLevel2Button.addEventListener('click', () => startQuiz(2)); // Start Level 2 Quiz
+
+        // Initial screen load
+        window.onload = () => {
+            showScreen('startScreen');
+        };
+    </script>
+</body>
+</html>
